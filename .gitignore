@@ -1,0 +1,57 @@
+# 环境变量
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# 数据库
+*.db
+*.sqlite
+*.sqlite3
+
+# 临时文件
+uploads/*
+outputs/*
+!uploads/.gitkeep
+!outputs/.gitkeep
+
+# 日志
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 测试
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 密钥文件
+*.pem
+*.key
+*.crt
