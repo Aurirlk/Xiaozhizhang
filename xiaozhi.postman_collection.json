@@ -1,0 +1,313 @@
+{
+  "info": {
+    "_postman_id": "xiaozhi-voice-api",
+    "name": "小智语音交互服务",
+    "description": "REST API 接口测试集合 - 支持文本/语音问答",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "session_id",
+      "value": "test_session_001"
+    }
+  ],
+  "item": [
+    {
+      "name": "问答接口",
+      "item": [
+        {
+          "name": "文本问答",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ask"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "session_id",
+                  "value": "{{session_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "text",
+                  "value": "你好，请介绍一下你自己",
+                  "type": "text"
+                },
+                {
+                  "key": "need_tts",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "发送文本消息进行问答，session_id 用于保持上下文"
+          }
+        },
+        {
+          "name": "语音问答",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ask"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "session_id",
+                  "value": "{{session_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "audio_file",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "need_tts",
+                  "value": "true",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "上传语音文件进行问答，自动进行 ASR 识别"
+          }
+        },
+        {
+          "name": "文本问答 (不返回语音)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ask",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ask"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "session_id",
+                  "value": "{{session_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "text",
+                  "value": "今天天气怎么样？",
+                  "type": "text"
+                },
+                {
+                  "key": "need_tts",
+                  "value": "false",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "只返回文本回复，不生成语音"
+          }
+        }
+      ]
+    },
+    {
+      "name": "流式问答",
+      "item": [
+        {
+          "name": "SSE 流式问答",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/api/v1/ask_stream",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "ask_stream"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "session_id",
+                  "value": "{{session_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "text",
+                  "value": "讲一个笑话",
+                  "type": "text"
+                }
+              ]
+            },
+            "description": "流式问答，LLM 边输出前端边接收 (SSE)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "会话管理",
+      "item": [
+        {
+          "name": "清空会话历史",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/v1/sessions/{{session_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "sessions", "{{session_id}}"]
+            },
+            "description": "清空指定会话的历史记录"
+          }
+        }
+      ]
+    },
+    {
+      "name": "配置接口",
+      "item": [
+        {
+          "name": "健康检查",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "检查服务健康状态"
+          }
+        },
+        {
+          "name": "获取服务提供商",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/providers",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "providers"]
+            },
+            "description": "获取可用的 ASR/LLM/TTS 服务提供商列表"
+          }
+        },
+        {
+          "name": "获取音色列表",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/voices",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "voices"]
+            },
+            "description": "获取 TTS 可用的音色列表"
+          }
+        },
+        {
+          "name": "获取 API 信息",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "获取 API 基本信息"
+          }
+        }
+      ]
+    },
+    {
+      "name": "CRM 接口",
+      "item": [
+        {
+          "name": "获取 CRM 统计",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/crm/stats",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "crm", "stats"]
+            },
+            "description": "获取 CRM 统计信息"
+          }
+        },
+        {
+          "name": "获取用户列表",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/crm/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "crm", "users"]
+            },
+            "description": "获取用户列表"
+          }
+        },
+        {
+          "name": "获取交互记录",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/crm/interactions",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "crm", "interactions"]
+            },
+            "description": "获取交互记录列表"
+          }
+        }
+      ]
+    },
+    {
+      "name": "音频资源",
+      "item": [
+        {
+          "name": "获取合成音频",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/v1/assets/audio/tts_example.wav",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "assets", "audio", "tts_example.wav"]
+            },
+            "description": "获取 TTS 生成的音频文件"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 自动更新 session_id"
+          "if (!pm.environment.get('session_id')) {",
+          "    pm.environment.set('session_id', 'session_' + Date.now());",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// 检查响应状态",
+          "pm.test('状态码为 200', function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test('响应包含 code 字段', function () {",
+          "    var jsonData = pm.response.json();",
+          "    pm.expect(jsonData).to.have.property('code');",
+          "    pm.expect(jsonData.code).to.eql(200);",
+          "});"
+        ]
+      }
+    }
+  ]
+}
