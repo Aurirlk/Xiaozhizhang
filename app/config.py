@@ -54,8 +54,18 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     
+    # WebSocket 配置
+    WS_HOST: str = "0.0.0.0"
+    WS_PORT: int = 8001
+    
+    # OTA 配置
+    OTA_HOST: str = "0.0.0.0"
+    OTA_PORT: int = 8003
+    
     # 数据库配置
-    DATABASE_URL: str = "sqlite+aiosqlite:///./xiaozhi.db"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./data/neuvox.db"
+    KNOWLEDGE_DB_URL: str = "sqlite+aiosqlite:///./data/knowledge.db"
+    MEMORY_DB_PATH: str = "data/memory_db"
     
     # 成本控制配置
     COST_DAILY_LIMIT: float = 10.0      # 日限额（元）

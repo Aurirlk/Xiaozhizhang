@@ -20,6 +20,8 @@ class ServiceProvider(str, Enum):
     DEEPSEEK = "deepseek"
     MINIMAX = "minimax"
     MIMO = "mimo"
+    FUNASR = "funasr"
+    EDGE = "edge"
     WHISPER = "whisper"
 
 
@@ -58,9 +60,15 @@ class ServiceFactory:
         def _create():
             if provider == ServiceProvider.AUTO:
                 return ServiceFactory._create_asr_auto()
+            if provider == ServiceProvider.FUNASR:
+                from app.services.asr.funasr_asr import FunASR
+                return FunASR()
             if provider == ServiceProvider.MINIMAX:
                 from app.services.asr.minimax_asr import MiniMaxASR
                 return MiniMaxASR()
+            if provider == ServiceProvider.MIMO:
+                from app.services.asr.mimo_asr import MiMoASR
+                return MiMoASR()
             raise ValueError(f"不支持的 ASR 提供商: {provider}")
         
         if use_cache:
@@ -69,10 +77,16 @@ class ServiceFactory:
     
     @staticmethod
     def _create_asr_auto() -> ASRBase:
+        from app.services.asr.funasr_asr import FunASR
         from app.services.asr.minimax_asr import MiniMaxASR
-        if settings.MINIMAX_API_KEY:
-            return MiniMaxASR()
-        raise ValueError("未配置任何 ASR API Key")
+        from app.services.asr.mimo_asr import MiMoASR
+        from app.utils.config_loader import config
+        asr_provider = config.get_asr_provider()
+        if asr_provider == "FunASR":
+            return FunASR()
+        if asr_provider == "MiMoASR":
+            return MiMoASR()
+        return MiniMaxASR()
     
     @staticmethod
     def create_llm(provider: str = ServiceProvider.AUTO, use_cache: bool = True) -> LLMBase:
@@ -83,6 +97,9 @@ class ServiceFactory:
             if provider == ServiceProvider.DEEPSEEK:
                 from app.services.llm.deepseek_llm import DeepSeekLLM
                 return DeepSeekLLM()
+            if provider == ServiceProvider.MIMO:
+                from app.services.llm.mimo_llm import MiMoLLM
+                return MiMoLLM()
             if provider == ServiceProvider.MINIMAX:
                 from app.services.llm.minimax_llm import MiniMaxLLM
                 return MiniMaxLLM()
@@ -95,12 +112,15 @@ class ServiceFactory:
     @staticmethod
     def _create_llm_auto() -> LLMBase:
         from app.services.llm.deepseek_llm import DeepSeekLLM
+        from app.services.llm.mimo_llm import MiMoLLM
         from app.services.llm.minimax_llm import MiniMaxLLM
-        if settings.DEEPSEEK_API_KEY:
-            return DeepSeekLLM()
-        if settings.MINIMAX_API_KEY:
+        from app.utils.config_loader import config
+        llm_provider = config.get_llm_provider()
+        if llm_provider == "MiMoLLM":
+            return MiMoLLM()
+        if llm_provider == "MiniMaxLLM":
             return MiniMaxLLM()
-        raise ValueError("未配置任何 LLM API Key")
+        return DeepSeekLLM()
     
     @staticmethod
     def create_tts(provider: str = ServiceProvider.AUTO, use_cache: bool = True) -> TTSBase:
@@ -108,6 +128,9 @@ class ServiceFactory:
         def _create():
             if provider == ServiceProvider.AUTO:
                 return ServiceFactory._create_tts_auto()
+            if provider == ServiceProvider.EDGE:
+                from app.services.tts.edge_tts import EdgeTTS
+                return EdgeTTS()
             if provider == ServiceProvider.MIMO:
                 from app.services.tts.mimo_tts import MiMoTTS
                 return MiMoTTS()
@@ -122,13 +145,16 @@ class ServiceFactory:
     
     @staticmethod
     def _create_tts_auto() -> TTSBase:
+        from app.services.tts.edge_tts import EdgeTTS
         from app.services.tts.mimo_tts import MiMoTTS
         from app.services.tts.minimax_tts import MiniMaxTTS
-        if settings.MIMO_TTS_API_KEY:
+        from app.utils.config_loader import config
+        tts_provider = config.get_tts_provider()
+        if tts_provider == "EdgeTTS":
+            return EdgeTTS()
+        if tts_provider == "MiMoTTS":
             return MiMoTTS()
-        if settings.MINIMAX_API_KEY:
-            return MiniMaxTTS()
-        raise ValueError("未配置任何 TTS API Key")
+        return MiniMaxTTS()
     
     # ========== Fallback 工厂方法 ==========
     
@@ -152,7 +178,7 @@ class FallbackASR(ASRBase):
     """带自动回退的 ASR 服务"""
     
     def __init__(self, providers: Optional[list] = None):
-        self.providers = providers or [ServiceProvider.MINIMAX]
+        self.providers = providers or [ServiceProvider.FUNASR, ServiceProvider.MIMO, ServiceProvider.MINIMAX]
         self._primary = None
         self._fallback = None
         
@@ -190,7 +216,7 @@ class FallbackLLM(LLMBase):
     """带自动回退的 LLM 服务"""
     
     def __init__(self, providers: Optional[list] = None):
-        self.providers = providers or [ServiceProvider.DEEPSEEK, ServiceProvider.MINIMAX]
+        self.providers = providers or [ServiceProvider.DEEPSEEK, ServiceProvider.MIMO, ServiceProvider.MINIMAX]
         self._primary = None
         self._fallback = None
         
@@ -241,7 +267,7 @@ class FallbackTTS(TTSBase):
     """带自动回退的 TTS 服务"""
     
     def __init__(self, providers: Optional[list] = None):
-        self.providers = providers or [ServiceProvider.MIMO, ServiceProvider.MINIMAX]
+        self.providers = providers or [ServiceProvider.EDGE, ServiceProvider.MIMO, ServiceProvider.MINIMAX]
         self._primary = None
         self._fallback = None
         
