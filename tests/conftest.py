@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock
 # 设置测试环境变量
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///./test_xiaozhi.db"
 
-from main import app
+from fastAPI import app
 from app.database import init_db
 
 
