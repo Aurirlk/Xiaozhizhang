@@ -1,4 +1,4 @@
-# 小智语音交互服务 - 依赖列表
+# NeuVox 语音服务 - 依赖列表
 # Python 3.10+
 
 # Web 框架
@@ -10,6 +10,7 @@ aiofiles>=23.0.0
 
 # HTTP 客户端
 httpx>=0.25.0
+beautifulsoup4>=4.12.0
 
 # 数据验证
 pydantic>=2.5.0
@@ -18,17 +19,28 @@ pydantic-settings>=2.1.0
 # 环境变量管理
 python-dotenv>=1.0.0
 
+# YAML 配置
+pyyaml>=6.0.0
+
 # Web UI
 gradio>=4.0.0
 
 # 数据库
 sqlalchemy>=2.0.0
 aiosqlite>=0.19.0
-# asyncpg>=0.29.0  # PostgreSQL 异步驱动（生产环境使用）
-# alembic>=1.12.0  # 数据库迁移工具
+asyncpg>=0.29.0  # PostgreSQL 异步驱动
 
-# Redis (可选，用于会话管理)
-# redis>=5.0.0
+# 向量数据库
+chromadb>=0.4.0
+
+# Redis (会话管理)
+redis>=5.0.0
+
+# PDF 解析
+pdfplumber>=0.10.0
+
+# Word 文档解析
+python-docx>=1.0.0
 
 # 日志
 loguru>=0.7.0
