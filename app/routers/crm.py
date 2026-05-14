@@ -50,6 +50,9 @@ class InteractionResponse(BaseModel):
     user_id: str
     user_message: str
     assistant_message: str
+    intent: Optional[str] = None
+    intent_confidence: Optional[int] = None
+    intent_source: Optional[str] = None
     crm_analyzed: bool
     created_at: datetime
 
@@ -267,3 +270,54 @@ async def get_crm_stats(
         analyzed_interactions=analyzed_interactions,
         users_with_profile=users_with_profile
     )
+
+
+# ==================== 意图统计接口 ====================
+
+@router.get("/intent/stats")
+async def get_intent_stats(
+    db: AsyncSession = Depends(get_db)
+):
+    """获取用户意图统计"""
+    # 按意图分组统计
+    result = await db.execute(
+        select(Interaction.intent, func.count(Interaction.id))
+        .where(Interaction.intent.isnot(None))
+        .group_by(Interaction.intent)
+    )
+    
+    intent_stats = {row[0]: row[1] for row in result.fetchall()}
+    
+    # 总交互数
+    total_result = await db.execute(
+        select(func.count(Interaction.id)).where(Interaction.intent.isnot(None))
+    )
+    total_with_intent = total_result.scalar() or 0
+    
+    return {
+        "intent_distribution": intent_stats,
+        "total_with_intent": total_with_intent,
+        "top_intents": sorted(intent_stats.items(), key=lambda x: x[1], reverse=True)[:5]
+    }
+
+
+@router.get("/intent/{intent_type}")
+async def get_interactions_by_intent(
+    intent_type: str,
+    limit: int = Query(default=20, ge=1, le=100),
+    db: AsyncSession = Depends(get_db)
+):
+    """按意图类型查询交互记录"""
+    result = await db.execute(
+        select(Interaction)
+        .where(Interaction.intent == intent_type)
+        .order_by(Interaction.created_at.desc())
+        .limit(limit)
+    )
+    
+    interactions = result.scalars().all()
+    return {
+        "intent": intent_type,
+        "count": len(interactions),
+        "interactions": interactions
+    }

@@ -68,6 +68,12 @@ class Interaction(Base):
     llm_model = Column(String(50), nullable=True, comment="使用的LLM模型")
     tts_model = Column(String(50), nullable=True, comment="使用的TTS模型")
     
+    # 意图识别
+    intent = Column(String(50), nullable=True, comment="用户意图: weather/news/search/knowledge/chat")
+    intent_confidence = Column(Integer, nullable=True, comment="意图置信度 (0-100)")
+    intent_source = Column(String(20), nullable=True, comment="意图来源: keyword/llm")
+    entities = Column(JSON, nullable=True, comment="提取的实体信息")
+    
     # 耗时统计 (毫秒)
     asr_latency_ms = Column(Integer, nullable=True, comment="ASR耗时")
     llm_latency_ms = Column(Integer, nullable=True, comment="LLM耗时")
