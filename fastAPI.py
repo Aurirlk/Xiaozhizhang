@@ -21,6 +21,7 @@ from app.ws.manager import manager, heartbeat_checker
 from app.database import init_db, close_db
 from app.services.factory import ServiceFactory
 from app.services.cost_tracker import cost_tracker
+from app.services.intent.router import IntentRouter
 from app.utils.logger import logger
 
 
@@ -69,6 +70,10 @@ class SessionManager:
 
 # 全局会话管理器
 session_manager = SessionManager(max_history=5)
+
+# 全局意图路由器实例
+intent_router = IntentRouter()
+intent_router.set_history_getter(session_manager.get_history)
 
 
 # =====================================================================
@@ -194,19 +199,35 @@ def register_core_routes(app: FastAPI):
                 logger.error(f"[ASR] 语音识别失败: {e}")
                 raise HTTPException(status_code=500, detail=f"语音识别失败: {str(e)}")
         
-        # 4. LLM: 对话生成（使用 Fallback）
+        # 4. 意图识别 + 路由处理
         history = session_manager.get_history(session_id)
         llm_usage = {"prompt_tokens": 0, "completion_tokens": 0}
+        tool_result = None
+        
         try:
-            llm_service = ServiceFactory.create_llm_with_fallback()
-            # 尝试获取 token 用量
-            if hasattr(llm_service, '_primary') and hasattr(llm_service._primary, 'chat_with_usage'):
-                reply_text, llm_usage = await llm_service._primary.chat_with_usage(user_query, history)
-            else:
-                reply_text = await llm_service.chat(user_query, history)
+            # 使用意图路由器处理用户输入
+            route_result = await intent_router.route(user_query, session_id)
+            reply_text = route_result.get("reply", "")
+            tool_result = route_result.get("tool_result")
+            
+            # 尝试获取 token 用量（如果可用）
+            if "llm_usage" in route_result:
+                llm_usage = route_result["llm_usage"]
+                
+            logger.info(f"[Ask] 意图: {route_result.get('intent', 'unknown')}, "
+                       f"工具: {route_result.get('tool_name', 'none')}")
         except Exception as e:
-            logger.error(f"[LLM] 对话生成失败: {e}")
-            raise HTTPException(status_code=500, detail=f"对话生成失败: {str(e)}")
+            logger.error(f"[Ask] 意图路由失败，降级到直接对话: {e}")
+            # 降级到直接 LLM 对话
+            try:
+                llm_service = ServiceFactory.create_llm_with_fallback()
+                if hasattr(llm_service, '_primary') and hasattr(llm_service._primary, 'chat_with_usage'):
+                    reply_text, llm_usage = await llm_service._primary.chat_with_usage(user_query, history)
+                else:
+                    reply_text = await llm_service.chat(user_query, history)
+            except Exception as e2:
+                logger.error(f"[LLM] 对话生成失败: {e2}")
+                raise HTTPException(status_code=500, detail=f"对话生成失败: {str(e2)}")
         
         # 更新会话历史
         session_manager.add_message(session_id, "user", user_query)
@@ -245,16 +266,22 @@ def register_core_routes(app: FastAPI):
         processing_time_ms = int((time.time() - start_time) * 1000)
         
         # 9. 返回标准化响应
+        response_data = {
+            "session_id": session_id,
+            "recognized_text": user_query if audio_file else None,
+            "reply_text": reply_text,
+            "audio_url": audio_url,
+            "processing_time_ms": processing_time_ms,
+        }
+        
+        # 添加工具调用信息（如果有）
+        if tool_result:
+            response_data["tool_result"] = tool_result
+        
         return JSONResponse(content={
             "code": 200,
             "msg": "success",
-            "data": {
-                "session_id": session_id,
-                "recognized_text": user_query if audio_file else None,
-                "reply_text": reply_text,
-                "audio_url": audio_url,
-                "processing_time_ms": processing_time_ms,
-            },
+            "data": response_data,
         })
     
     @app.post("/api/v1/ask_stream", summary="流式问答接口 (SSE)")
