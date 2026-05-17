@@ -22,6 +22,14 @@ build/
 *.sqlite
 *.sqlite3
 
+# data 目录下的动态文件（保留目录结构）
+data/*.db
+data/chroma_db/
+data/memory_db/
+data/history/*.json
+data/profiles/*.json
+data/voiceprints/*.json
+
 # 临时文件
 uploads/*
 outputs/*

@@ -15,8 +15,8 @@ class IntentType(str, Enum):
     """意图类型枚举"""
     WEATHER = "weather"           # 天气查询
     NEWS = "news"                 # 新闻获取
-    SEARCH = "search"             # 网页搜索
-    KNOWLEDGE = "knowledge"       # 知识库查询
+    SEARCH = "search"             # 联网搜索
+    KNOWLEDGE = "knowledge"       # 法律/专业知识库
     TIME = "time"                 # 时间查询
     CHAT = "chat"                 # 闲聊对话
     UNKNOWN = "unknown"           # 未知意图
@@ -64,18 +64,24 @@ class IntentClassifier:
         },
         IntentType.SEARCH: {
             "keywords": ["搜索", "查一下", "查询", "是什么", "什么是", "怎么",
-                        "如何", "为什么", "哪里", "在哪"],
+                        "如何", "为什么", "哪里", "在哪", "帮我查", "上网查"],
             "patterns": [
                 r"帮我查",
                 r"搜索一下",
                 r"上网查",
+                r"查一下.*",
             ]
         },
         IntentType.KNOWLEDGE: {
-            "keywords": ["知识库", "专业", "领域", "资料", "文档", "教程"],
+            "keywords": ["法律", "法规", "法条", "规定", "条例", "合同", "劳动法",
+                        "民法典", "刑法", "治安", "处罚", "权利", "义务", "诉讼",
+                        "律师", "法院", "判决", "合同法", "知识产权"],
             "patterns": [
-                r"知识库里",
-                r"根据.*资料",
+                r"根据.*法",
+                r".*法.*规定",
+                r"法律.*问题",
+                r"合同.*纠纷",
+                r"劳动.*争议",
             ]
         },
         IntentType.TIME: {
