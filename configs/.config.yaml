@@ -3,9 +3,9 @@
 
 # ==================== 模块选择 ====================
 selected_module:
-  ASR: MiniMaxASR           # 语音识别
-  LLM: DeepSeekLLM          # 大模型
-  TTS: MiMoTTS              # 语音合成
+  ASR: FunASR             # 语音识别（免费）
+  LLM: DeepSeekLLM        # 大模型
+  TTS: EdgeTTS            # 语音合成（免费）
   Intent: IntentRouter       # 意图路由
   CRM: CRMAnalyzer          # CRM 分析
   Knowledge: RAGService      # 知识库
@@ -17,6 +17,15 @@ LLM:
     model_name: deepseek-v4-flash
     url: https://api.deepseek.com/v1/chat/completions
     api_key: "${DEEPSEEK_API_KEY}"
+    temperature: 0.7
+    max_tokens: 2048
+    timeout: 60
+    
+  MiMoLLM:
+    type: openai
+    model_name: MiniMax-Text-01
+    url: https://api.minimax.chat/v1/text/chatcompletion_v2
+    api_key: "${MIMO_TTS_API_KEY}"
     temperature: 0.7
     max_tokens: 2048
     timeout: 60
@@ -33,6 +42,19 @@ LLM:
 
 # ==================== 语音识别配置 ====================
 ASR:
+  FunASR:
+    type: funasr
+    model: paraformer-zh
+    vad_model: fsmn-vad
+    punc_model: ct-punc
+    device: cpu
+    supported_formats:
+      - .wav
+      - .mp3
+      - .m4a
+      - .ogg
+      - .flac
+
   MiniMaxASR:
     type: minimax
     url: https://api.minimax.chat/v1/audio/speech_to_text
@@ -45,8 +67,26 @@ ASR:
       - .m4a
       - .ogg
 
+  MiMoASR:
+    type: mimo
+    url: https://api.minimax.chat/v1/audio/speech_to_text
+    api_key: "${MIMO_TTS_API_KEY}"
+    model: mimo-v2.5
+    language: zh-CN
+    timeout: 30
+    supported_formats:
+      - .wav
+      - .mp3
+      - .m4a
+      - .ogg
+
 # ==================== 语音合成配置 ====================
 TTS:
+  EdgeTTS:
+    type: edge
+    voice: zh-CN-XiaoxiaoNeural
+    output_dir: outputs
+
   MiMoTTS:
     type: mimo
     model: mimo-v2.5-tts
@@ -209,22 +249,54 @@ Knowledge:
       - .pdf
       - .docx
 
-# ==================== Coze 工作流配置 ====================
-Coze:
-  api_key: "${COZE_API_KEY}"
-  base_url: https://api.coze.com
-  timeout: 30
-  workflows:
-    knowledge_qa:
-      workflow_id: "${COZE_WORKFLOW_KNOWLEDGE_QA}"
-    general_chat:
-      workflow_id: "${COZE_WORKFLOW_GENERAL_CHAT}"
+# ==================== Coze 工作流配置 (已弃用) ====================
+# Coze:
+#   api_key: "${COZE_API_KEY}"
+#   base_url: https://tvy9dsqws8.coze.site
+#   workflow_url: https://tvy9dsqws8.coze.site/stream_run
+#   project_id: "7649615805088382985"
+#   session_id: default_session
+#   timeout: 30
+
+# ==================== MQTT 配置 ====================
+MQTT:
+  broker: "${MQTT_BROKER}"
+  port: 1883
+  client_id: "neuvox_client"
+  username: "${MQTT_USERNAME}"
+  password: "${MQTT_PASSWORD}"
+
+# ==================== Embedding 配置 ====================
+MCP:
+  enabled: true
+
+# ==================== Embedding 配置 ====================
+Embedding:
+  model: "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+  dimension: 384
+  device: "cpu"
+  batch_size: 32
 
 # ==================== 服务器配置 ====================
 server:
   host: 0.0.0.0
   port: 8000
   debug: true
+
+# ==================== Web UI 配置 ====================
+web_ui:
+  host: 127.0.0.1
+  port: 7860
+
+# ==================== WebSocket 配置 ====================
+websocket:
+  host: 0.0.0.0
+  port: 8001
+
+# ==================== OTA 配置 ====================
+ota:
+  host: 0.0.0.0
+  port: 8003
 
 # ==================== 数据库配置 ====================
 database:
