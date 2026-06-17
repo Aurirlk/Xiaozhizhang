@@ -2,6 +2,7 @@
 MiniMax LLM 大语言模型实现（备份）
 """
 import httpx
+from datetime import datetime
 from typing import List, Dict, Optional, AsyncGenerator
 from app.utils.config_loader import config
 from app.services.base.llm_base import LLMBase
@@ -19,6 +20,12 @@ class MiniMaxLLM(LLMBase):
         
         self.system_prompt = """你是一个友好、专业的智能语音助手。请用简洁自然的中文回答用户的问题。
 回复要口语化，适合语音播报，避免使用Markdown格式和特殊符号。"""
+    
+    def _get_system_prompt(self) -> str:
+        now = datetime.now()
+        weekdays = ["星期一", "星期二", "星期三", "星期四", "星期五", "星期六", "星期日"]
+        time_str = now.strftime(f"%Y年%m月%d日 %H:%M:%S {weekdays[now.weekday()]}")
+        return f"{self.system_prompt}\n\n当前时间：{time_str}（系统时间，非你训练数据中的时间）"
         
     async def chat(
         self, 
@@ -136,7 +143,7 @@ class MiniMaxLLM(LLMBase):
         history: Optional[List[Dict[str, str]]] = None
     ) -> List[Dict[str, str]]:
         """构建消息列表"""
-        messages = [{"role": "system", "content": self.system_prompt}]
+        messages = [{"role": "system", "content": self._get_system_prompt()}]
         
         if history:
             messages.extend(history)
