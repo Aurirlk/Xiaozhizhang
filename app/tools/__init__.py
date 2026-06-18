@@ -8,9 +8,8 @@ from app.tools.weather_tool import WeatherTool
 from app.tools.news_tool import NewsTool
 from app.tools.search_tool import SearchTool
 from app.tools.knowledge_tool import KnowledgeTool
-from app.tools.time_tool import TimeTool
 
 __all__ = [
     "BaseTool", "ToolResult", "ToolRegistry", "tool_registry",
-    "WeatherTool", "NewsTool", "SearchTool", "KnowledgeTool", "TimeTool"
+    "WeatherTool", "NewsTool", "SearchTool", "KnowledgeTool"
 ]

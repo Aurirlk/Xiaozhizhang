@@ -9,7 +9,6 @@ from app.tools.weather_tool import WeatherTool
 from app.tools.news_tool import NewsTool
 from app.tools.search_tool import SearchTool
 from app.tools.knowledge_tool import KnowledgeTool
-from app.tools.time_tool import TimeTool
 from app.utils.logger import logger
 
 
@@ -35,7 +34,6 @@ class ToolRegistry:
         self.register(NewsTool())
         self.register(SearchTool())
         self.register(KnowledgeTool())
-        self.register(TimeTool())
     
     def register(self, tool: BaseTool):
         """注册工具"""
