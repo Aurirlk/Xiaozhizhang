@@ -17,7 +17,7 @@ class IntentType(str, Enum):
     NEWS = "news"                 # 新闻获取
     SEARCH = "search"             # 联网搜索
     KNOWLEDGE = "knowledge"       # 法律/专业知识库
-    TIME = "time"                 # 时间查询
+    TIME = "time"                 # 时间查询（直接走 LLM，system prompt 已注入时间）
     CHAT = "chat"                 # 闲聊对话
     UNKNOWN = "unknown"           # 未知意图
 
@@ -47,10 +47,10 @@ class IntentClassifier:
             "keywords": ["天气", "气温", "温度", "下雨", "晴天", "多云", "刮风", 
                         "降温", "升温", "湿度", "紫外线", "空气质量"],
             "patterns": [
-                r"(.+?)的?天气",      # "北京天气" / "北京的天气"
-                r"(.+?)多少度",       # "北京多少度"
-                r"(.+?)会不会下雨",   # "明天会不会下雨"
-                r"下雨",              # "会下雨吗"
+                r"(?P<city>.+?)的?(?:今天|明天|后天|现在)?天气",  # "江西南昌的今天天气"
+                r"(?P<city>.+?)的?天气",                         # "北京天气"
+                r"(?P<city>.+?)多少度",                          # "北京多少度"
+                r"(?P<city>.+?)会不会下雨",                      # "明天会不会下雨"
             ]
         },
         IntentType.NEWS: {
