@@ -38,7 +38,6 @@ class IntentRouter:
             IntentType.NEWS: "get_trending_news",
             IntentType.SEARCH: "web_search",
             IntentType.KNOWLEDGE: "query_knowledge",
-            IntentType.TIME: "get_time",
         }
         
         # 注册默认处理器
@@ -55,12 +54,13 @@ class IntentRouter:
     
     def _register_default_handlers(self):
         """注册默认的意图处理器"""
-        # Function Calling 分支（天气/新闻/搜索/知识库/时间）
+        # Function Calling 分支（天气/新闻/搜索/知识库）
         self._handlers[IntentType.WEATHER] = self._handle_tool_with_llm
         self._handlers[IntentType.NEWS] = self._handle_tool_with_llm
         self._handlers[IntentType.SEARCH] = self._handle_tool_with_llm
         self._handlers[IntentType.KNOWLEDGE] = self._handle_tool_with_llm
-        self._handlers[IntentType.TIME] = self._handle_tool_with_llm
+        # 时间查询直接走 LLM（system prompt 已注入当前时间）
+        self._handlers[IntentType.TIME] = self._handle_chat
         # 直接 LLM 对话分支（闲聊）
         self._handlers[IntentType.CHAT] = self._handle_chat
         self._handlers[IntentType.UNKNOWN] = self._handle_chat
@@ -141,6 +141,12 @@ class IntentRouter:
             **intent_result.entities
         )
         
+        # 工具参数缺失时，用 LLM 从用户输入中提取
+        if not tool_result.success and "参数无效" in (tool_result.error or ""):
+            extracted = await self._extract_params_with_llm(user_input, tool_name)
+            if extracted:
+                tool_result = await tool_registry.execute_tool(tool_name, **extracted)
+        
         if not tool_result.success:
             logger.warning(f"[Router] 工具执行失败: {tool_result.error}")
             # 工具失败，降级到直接对话
@@ -175,6 +181,27 @@ class IntentRouter:
         
         return prompts.get(tool_name, f"工具结果：\n{tool_data_str}\n\n请回复用户。")
     
+    async def _extract_params_with_llm(self, user_input: str, tool_name: str) -> Dict[str, Any]:
+        """用 LLM 从用户输入中提取工具参数"""
+        try:
+            llm_service = ServiceFactory.create_llm()
+            prompt = (
+                f'用户说："{user_input}"\n'
+                f'工具：{tool_name}\n'
+                f'请从用户输入中提取工具所需的参数，返回 JSON 格式。'
+                f'如果无法提取，返回空 JSON {{}}。\n'
+                f'例如：用户说"北京天气"，返回 {{"city": "北京"}}'
+            )
+            reply = await llm_service.chat(prompt)
+            import json
+            # 尝试从回复中提取 JSON
+            reply = reply.strip()
+            if reply.startswith("```"):
+                reply = reply.split("\n", 1)[-1].rsplit("```", 1)[0].strip()
+            return json.loads(reply)
+        except Exception:
+            return {}
+
     async def _handle_chat(
         self, 
         user_input: str, 
