@@ -110,7 +110,7 @@ TTS:
   EdgeTTS:
     type: edge
     voice: zh-CN-XiaoxiaoNeural
-    output_dir: tmp/
+    output_dir: outputs
     
   MiniMaxTTS:
     type: minimax
@@ -216,7 +216,6 @@ Tools:
       context:
         type: string
         description: 上下文信息
-    coze_workflow_id: "${COZE_WORKFLOW_KNOWLEDGE_QA}"
 
 # ==================== CRM 配置 ====================
 CRM:
@@ -248,15 +247,6 @@ Knowledge:
       - .txt
       - .pdf
       - .docx
-
-# ==================== Coze 工作流配置 (已弃用) ====================
-# Coze:
-#   api_key: "${COZE_API_KEY}"
-#   base_url: https://tvy9dsqws8.coze.site
-#   workflow_url: https://tvy9dsqws8.coze.site/stream_run
-#   project_id: "7649615805088382985"
-#   session_id: default_session
-#   timeout: 30
 
 # ==================== MQTT 配置 ====================
 MQTT:
