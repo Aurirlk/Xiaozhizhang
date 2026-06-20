@@ -166,12 +166,6 @@ class ConfigLoader:
     def get_knowledge_config(self) -> Dict[str, Any]:
         return self.get("Knowledge", "RAGService", default={})
     
-    def get_coze_config(self) -> Dict[str, Any]:
-        config = self.get("Coze", default={})
-        if "api_key" in config:
-            config["api_key"] = self.resolve_env_vars(config["api_key"])
-        return config
-    
     def get_server_config(self) -> Dict[str, Any]:
         return self.get("server", default={"host": "0.0.0.0", "port": 8000, "debug": True})
     
